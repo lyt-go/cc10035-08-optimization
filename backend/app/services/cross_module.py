@@ -289,6 +289,45 @@ class CrossModuleService:
             })
         return result
 
+    # ---- Flow 3 延伸：保留估算单 -> 容量确认单 -> 幂等开通（委托时序存储领域服务） ----
+
+    def _ts_store(self):
+        from app.services.ts_store import TsStoreService
+        return TsStoreService()
+
+    def create_retention_estimate(self, *args: Any, **kwargs: Any) -> dict[str, Any]:
+        return self._ts_store().create_retention_estimate(*args, **kwargs)
+
+    apply_retention_estimate = create_retention_estimate
+    request_retention_estimate = create_retention_estimate
+
+    def list_retention_estimates(self, *args: Any, **kwargs: Any) -> dict[str, Any]:
+        return self._ts_store().list_retention_estimates(*args, **kwargs)
+
+    def confirm_capacity(self, *args: Any, **kwargs: Any) -> dict[str, Any]:
+        return self._ts_store().confirm_capacity(*args, **kwargs)
+
+    def transfer_to_strategy(self, *args: Any, **kwargs: Any) -> dict[str, Any]:
+        return self._ts_store().transfer_to_strategy(*args, **kwargs)
+
+    transfer_retention_strategy = transfer_to_strategy
+
+    def activate_retention_strategy(self, *args: Any, **kwargs: Any) -> dict[str, Any]:
+        return self._ts_store().activate_from_estimate(*args, **kwargs)
+
+    activate_from_estimate = activate_retention_strategy
+    submit_activation = activate_retention_strategy
+    claim_strategy = activate_retention_strategy
+
+    def renew_retention_estimate(self, *args: Any, **kwargs: Any) -> dict[str, Any]:
+        return self._ts_store().renew_estimate(*args, **kwargs)
+
+    def retention_server_basis(self, *args: Any, **kwargs: Any) -> dict[str, Any] | None:
+        return self._ts_store().point_basis(*args, **kwargs)
+
+    def retention_overview(self, *args: Any, **kwargs: Any) -> dict[str, Any]:
+        return self._ts_store().retention_overview(*args, **kwargs)
+
     # ========================
     # Flow 4: downsample + data_gap → 降采样与数据断点补采
     # ========================

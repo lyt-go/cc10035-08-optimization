@@ -91,6 +91,28 @@ def create_entry(module: str, payload: EntryPayload) -> ActionResult:
     return ActionResult(ok=True, message=f"{service.ENTITY}已登记", entry=entry)
 
 
+@router.put("/{module}/{entry_id}", response_model=ActionResult)
+def update_entry_put(module: str, entry_id: int, payload: EntryPayload) -> ActionResult:
+    service = require_service(module)
+    entry, message = service.update_entry(entry_id, payload.values)
+    return ActionResult(ok=entry is not None, message=message, entry=entry)
+
+
+@router.patch("/{module}/{entry_id}", response_model=ActionResult)
+def update_entry_patch(module: str, entry_id: int, payload: EntryPayload) -> ActionResult:
+    service = require_service(module)
+    entry, message = service.update_entry(entry_id, payload.values)
+    return ActionResult(ok=entry is not None, message=message, entry=entry)
+
+
+@router.post("/{module}/{entry_id}/update", response_model=ActionResult)
+def update_entry_action(module: str, entry_id: int, payload: EntryPayload) -> ActionResult:
+    """兼容不使用 PUT/PATCH 的调用方：以动作形式提交字段更新。"""
+    service = require_service(module)
+    entry, message = service.update_entry(entry_id, payload.values)
+    return ActionResult(ok=entry is not None, message=message, entry=entry)
+
+
 @router.post("/{module}/{entry_id}/actions", response_model=ActionResult)
 def run_action(module: str, entry_id: int, payload: ActionPayload) -> ActionResult:
     service = require_service(module)

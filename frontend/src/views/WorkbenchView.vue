@@ -15,6 +15,13 @@
       </div>
     </header>
 
+    <PointSamplingPanel v-if="moduleKey === 'ts_point'" />
+    <RetentionWorkspace
+      v-if="moduleKey === 'ts_store'"
+      ref="retentionWorkspace"
+      @changed="reload"
+    />
+
     <div class="stat-row">
       <article v-for="item in stats" :key="item.label" class="stat-card">
         <span class="stat-label">{{ item.label }}</span>
@@ -104,9 +111,12 @@ import {
   runAction as applyAction,
 } from '@/api/backend-service'
 import type { EntryRow } from '@/data/types'
+import PointSamplingPanel from '@/views/ts-point/PointSamplingPanel.vue'
+import RetentionWorkspace from '@/views/ts-store/RetentionWorkspace.vue'
 
 const props = defineProps<{ moduleKey: string }>()
 const meta = moduleMeta(props.moduleKey)
+const retentionWorkspace = ref<InstanceType<typeof RetentionWorkspace> | null>(null)
 const rows = ref<EntryRow[]>([])
 const total = ref(0)
 const errorMessage = ref('')

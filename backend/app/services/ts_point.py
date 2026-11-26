@@ -34,6 +34,29 @@ class TsPointService(BaseModuleService):
     ACTION_RULES = {"启动采集": "采集中", "停止采集": "已停采", "标记废弃": "已废弃"}
     NEGATIVE_ACTIONS = []
 
+    def update_entry(
+        self, entry_id: int, values: dict[str, Any]
+    ) -> tuple[dict[str, Any] | None, str]:
+        """更新测点参数；采集间隔统一规范成 ``Ns`` 并递增参数版本。"""
+        from app.services.ts_store import parse_interval_seconds
+
+        entry = store.find(self.MODULE, entry_id)
+        if entry is None:
+            return None, f"{self.ENTITY} {entry_id} 不存在或已归档"
+        values = dict(values or {})
+        if "采集间隔" in values or "sampling_interval" in values or "sampling_interval_seconds" in values:
+            raw = values.get("采集间隔")
+            if raw in (None, ""):
+                raw = values.get("sampling_interval", values.get("sampling_interval_seconds"))
+            seconds = parse_interval_seconds(raw, default=-1)
+            if seconds <= 0:
+                return None, f"无法识别的采集间隔：{raw!r}"
+            values["采集间隔"] = f"{seconds}s"
+            entry["采样间隔秒数"] = seconds
+            entry["参数版本"] = int(entry.get("参数版本") or 0) + 1
+            entry["参数更新时间"] = datetime.now(CST).isoformat(timespec="seconds")
+        return super().update_entry(entry_id, values)
+
     def simulate_data(self, point_id: str, count: int = 10) -> dict[str, Any]:
         """模拟测点数据采集：根据测点配置生成模拟时序数据。
 

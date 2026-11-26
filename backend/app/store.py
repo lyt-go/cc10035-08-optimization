@@ -16,7 +16,10 @@ class Store:
         }
 
     def module_names(self) -> list[str]:
-        return sorted(self._tables)
+        # 只把种子数据中的 18 个业务模块当作可枚举模块；运行期流程单据
+        # （估算单/确认单/待核项/台账）虽然也放在仓库里，但不应出现在
+        # 运营概览的模块清单中。
+        return sorted(SEED_ROWS.keys())
 
     def rows(self, module: str) -> list[dict[str, Any]]:
         return self._tables.setdefault(module, [])

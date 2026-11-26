@@ -9,7 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routers import ROUTERS
+from app.routers import cross_module, resource, retention
 from app.store import store
 
 app = FastAPI(title="IoT设备数据接入与协议适配平台", version="1.0.0")
@@ -34,7 +34,15 @@ def overview() -> dict[str, object]:
     return store.overview()
 
 
+# 时序存储开通一致性流程端点先于通用资源路由注册：
+# /api/ts_store/estimates 这类静态路径不能被 /api/{module}/{entry_id} 抢先匹配。
+for prefix in (
+    "/api/retention", "/api/ts-store", "/api/ts_store",
+    "/api/retention-flow", "/api/cross/flow3", "/api",
+):
+    app.include_router(retention.router, prefix=prefix)
+
 # 资源路由含 /api/{module}，必须放在 health / overview 之后注册，
 # 否则固定路径会被动态路径抢先匹配。
-for module in ROUTERS:
+for module in (cross_module, resource):
     app.include_router(module.router)

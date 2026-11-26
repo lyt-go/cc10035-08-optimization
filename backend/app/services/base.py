@@ -59,6 +59,20 @@ class BaseModuleService:
         rows.append(entry)
         return entry, []
 
+    def update_entry(
+        self, entry_id: int, values: dict[str, Any]
+    ) -> tuple[dict[str, Any] | None, str]:
+        """按字段白名单更新一条记录；子类可覆盖以承载真实参数修订逻辑。"""
+        entry = store.find(self.MODULE, entry_id)
+        if entry is None:
+            return None, f"{self.ENTITY} {entry_id} 不存在或已归档"
+        changed: list[str] = []
+        for field in self.LIST_FIELDS:
+            if field in values and values[field] is not None:
+                entry[field] = values[field]
+                changed.append(field)
+        return entry, f"{self.ENTITY}已更新（{'、'.join(changed) if changed else '无字段变更'}）"
+
     def run_action(self, entry_id: int, action: str) -> tuple[dict[str, Any] | None, str]:
         entry = store.find(self.MODULE, entry_id)
         if entry is None:
